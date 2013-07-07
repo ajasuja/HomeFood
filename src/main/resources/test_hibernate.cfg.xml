@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.connection.username"></property>
+        <property name="hibernate.connection.password"></property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/test</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
+
+		<!-- To display hibernate queries on the console -->
+    	<property name="show_sql">true</property> 
+
+    	<property name="connection.pool_size">1</property>
+
+    	<!-- To drop and create new table each time it runs  -->
+     	<property name="hibernate.hbm2ddl.auto">create</property>
+
+    	<!-- To create table is doesn't exists, otherwise update -->
+<!--      	<property name="hibernate.hbm2ddl.auto">update</property> -->
+    	
+    	<!-- MAPPINGS FOR ENTITIES -->
+	   	<!-- <mapping class="hibernate.entities.Student"></mapping>-->
+    	<mapping class="bos.FoodEntry"></mapping>
+    	    	
+    </session-factory>
+    
+</hibernate-configuration>

@@ -1,0 +1,15 @@
+1. Creating Table in MySql:
+
+CREATE TABLE `FoodEntry` (
+  `foodId` BIGINT NOT NULL AUTO_INCREMENT,
+  `cookId` BIGINT NOT NULL,
+  `foodName` VARCHAR(20) NOT NULL, 
+  `foodDescription` VARCHAR(100) NOT NULL,
+  `pricePerPerson` varchar(20) NOT NULL,
+  `numOfPersons` INT NOT NULL,
+  `currencyType` VARCHAR(10) NOT NULL,
+  `orderTimeDeadline` BIGINT NOT NULL,
+  `changeTime` BIGINT NOT NULL,
+  PRIMARY KEY (`foodId`)
+) ENGINE=InnoDB AUTO_INCREMENT=2001 DEFAULT CHARSET=utf8;
+
