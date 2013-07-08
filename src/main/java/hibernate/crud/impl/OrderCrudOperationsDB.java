@@ -2,78 +2,82 @@ package hibernate.crud.impl;
 
 import java.util.List;
 
-import hibernate.crud.ICrudOperations;
-import hibernate.init.HibernateUtil;
-
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import bos.FoodEntry;
+import bos.Order;
+import hibernate.crud.ICrudOperations;
+import hibernate.crud.OrderValidity;
+import hibernate.init.HibernateUtil;
 
-public class FoodEntryCrudOperationsDB implements ICrudOperations<FoodEntry> {
-	
+public class OrderCrudOperationsDB implements ICrudOperations<Order>{
+
 	private SessionFactory sessionFactory = HibernateUtil.SINGLETON.getSessionFactory();
-	
-	public long insert(FoodEntry foodEntry) {
+
+	private static long INVALID_ORDER = -1L;
+	public long insert(Order order) {
+		if(!OrderValidity.isValidOrder(order)) {
+			return INVALID_ORDER;
+		}
 		Session session = sessionFactory.openSession();
 		Transaction transaction = session.beginTransaction();		
-		session.save(foodEntry);
+		session.save(order);
 		session.flush();
-		long insertedFoodId = foodEntry.getFoodId();
+		long insertedOrderId = order.getOrderId();
 		transaction.commit();		
 		session.close();
-		return insertedFoodId;
+		return insertedOrderId;
 	}
 
-	public void update(FoodEntry foodEntry) {
+	public void update(Order order) {
 		Session session = sessionFactory.openSession();
 		Transaction transaction = session.beginTransaction();		
-		session.update(foodEntry);
+		session.update(order);
 		transaction.commit();
 		session.close();
 	}
 
-	public void delete(long foodId) {
+	public void delete(long orderId) {
 		Session session = sessionFactory.openSession();
-		Transaction  transaction = session.beginTransaction();
-		FoodEntry foodEntry = (FoodEntry) session.get(FoodEntry.class, foodId);
-		session.delete(foodEntry);
+		Transaction transaction = session.beginTransaction();
+		Order order = (Order) session.get(Order.class, orderId);
+		session.delete(order);
 		transaction.commit();
 		session.close();
 	}
-	
-//TODO To move these read functions one level up for common use	
+
 	public void read(String tableName) {
 		Session session = sessionFactory.openSession();
-		List<FoodEntry> foodEntries = session.createQuery("from " + tableName).list();
-		if (foodEntries.isEmpty()) {
+		List<Order> orders = session.createQuery("from " + tableName).list();
+		if (orders.isEmpty()) {
 			System.out.println("No Rows Found in table : " + tableName);
 		}
 		session.close();
-		for (FoodEntry foodEntry : foodEntries) {
-			System.out.println(foodEntry.getFoodId() +"-->" + foodEntry.getFoodName());
+		for (Order order : orders) {
+			System.out.println("Order ID : " + order.getOrderId() +" >>> " +
+					"for Food ID : " + order.getFoodId());
 		}
 	}
 
 	public int numberOfRows(String tableName) {
 		Session session = sessionFactory.openSession();
-		List<FoodEntry> foodEntries = session.createQuery("from " + tableName).list();
+		List<Order> orders = session.createQuery("from " + tableName).list();
 		session.close();
-		return foodEntries.size();
+		return orders.size();
 	}
 
-	public FoodEntry getPojo(String tableName, long id) {
+	public Order getPojo(String tableName, long id) {
 		Session session = sessionFactory.openSession();
-		Query query = session.createQuery("from " + tableName + " where foodId = " + id);
-		FoodEntry foodEntry = (FoodEntry) query.uniqueResult();
-		return foodEntry;
+		Query query = session.createQuery("from " + tableName + " where orderId = " + id);
+		Order order = (Order) query.uniqueResult();
+		return order;
 	}
 
 	public void deleteAllRows(String tableName) {
 		Session session = sessionFactory.openSession();
-		Transaction  transaction = session.beginTransaction();
+		Transaction transaction = session.beginTransaction();
 		String hql = String.format("delete from %s", tableName);
 	    Query query = session.createQuery(hql);
 	    query.executeUpdate();

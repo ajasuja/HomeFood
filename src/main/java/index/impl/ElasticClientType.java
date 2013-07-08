@@ -16,4 +16,14 @@ public enum ElasticClientType {
 	public String getEnvironment() {
 		return this.environment;
 	}
+	
+	public static ElasticClientType getClientType(String environment) {
+		ElasticClientType matchedClientType = null;
+		for (ElasticClientType clientType : ElasticClientType.values()) {
+			if (clientType.getEnvironment().equals(environment)) {
+				matchedClientType = clientType;
+			}
+		}
+		return matchedClientType;
+	}
 }

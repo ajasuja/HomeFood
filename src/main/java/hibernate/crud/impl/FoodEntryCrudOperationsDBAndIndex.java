@@ -18,23 +18,26 @@ import hibernate.interceptor.IndexerInterceptor;
 
 public class FoodEntryCrudOperationsDBAndIndex implements ICrudOperations<FoodEntry> {
 
-	private SessionFactory sessionFactory;
+	private SessionFactory sessionFactory = HibernateUtil.SINGLETON.getSessionFactory();
 	
-	public FoodEntryCrudOperationsDBAndIndex(ElasticClientType clientType) {
-		Configuration hibernateConfig = ConfigurationFactory.SINGLETON
-				.getConfigurationWithInterceptor(clientType , new IndexerInterceptor(clientType));
-		sessionFactory = HibernateUtil.getSessionFactory(hibernateConfig);
-	}
+//	public FoodEntryCrudOperationsDBAndIndex(ElasticClientType clientType) {
+//		Configuration hibernateConfig = ConfigurationFactory.SINGLETON
+//				.getConfigurationWithInterceptor(clientType , new IndexerInterceptor(clientType));
+//		sessionFactory = HibernateUtil.getSessionFactory(hibernateConfig);
+//	}
 	
-	public void insert(FoodEntry foodEntry) {
+	public long insert(FoodEntry foodEntry) {
 //		Configuration hibernateConfig = ConfigurationFactory.SINGLETON
 //				.getConfigurationWithInterceptor(environment , new IndexerInterceptor());
 //		SessionFactory sessionFactory = HibernateUtil.getSessionFactory(hibernateConfig);
 		Session session = sessionFactory.openSession();
 		Transaction transaction = session.beginTransaction();		
 		session.save(foodEntry);
+		session.flush();
+		long insertedFoodId = foodEntry.getFoodId();
 		transaction.commit();		
 		session.close();
+		return insertedFoodId;
 	}
 
 	public void update(FoodEntry foodEntry) {
@@ -78,6 +81,16 @@ public class FoodEntryCrudOperationsDBAndIndex implements ICrudOperations<FoodEn
 		Query query = session.createQuery("from " + tableName + " where foodId = " + id);
 		FoodEntry foodEntry = (FoodEntry) query.uniqueResult();
 		return foodEntry;
+	}
+
+	public void deleteAllRows(String tableName) {
+		Session session = sessionFactory.openSession();
+		Transaction transaction = session.beginTransaction();
+		String hql = String.format("delete from %s", tableName);
+	    Query query = session.createQuery(hql);
+	    query.executeUpdate();
+	    transaction.commit();
+	    session.close();
 	}
 
 }
