@@ -33,6 +33,7 @@ public enum HibernateUtil {
 	public SessionFactory getSessionFactory() {
 		String environment = System.getProperty("env");
 		ElasticClientType clientType = ElasticClientType.getClientType(environment);
+		//TODO Remove hardcoded Interceptor from here
 		Configuration conf = ConfigurationFactory.SINGLETON.getConfigurationWithInterceptor(clientType, new IndexerInterceptor(clientType));
 		if (sessionFactory == null) {
 			serviceRegistry = new ServiceRegistryBuilder().applySettings(conf.getProperties()).buildServiceRegistry();

@@ -2,19 +2,15 @@ package hibernate.crud.impl;
 
 import java.util.List;
 
-import index.impl.ElasticClientType;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 
 import bos.FoodEntry;
 import hibernate.crud.ICrudOperations;
-import hibernate.init.ConfigurationFactory;
 import hibernate.init.HibernateUtil;
-import hibernate.interceptor.IndexerInterceptor;
 
 public class FoodEntryCrudOperationsDBAndIndex implements ICrudOperations<FoodEntry> {
 
