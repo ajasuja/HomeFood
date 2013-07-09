@@ -22,12 +22,17 @@ public class ElasticClientFactory {
 	
 	
 	private static Node node;
-	
+		
 	public static void closeNode() {
 		if(node == null) {
 			return;
 		}
 		node.close();
+		//TODO Temporary fix for running all ES tests in one go to get new Node for each test.
+		//Ideally it should give new node for each test but we don't want to give new node for 
+		//searcher. So basically once we have code which takes one node for indexer+searcher
+		//then we can remove this below statement.
+		node = null;
 	}
 	
 	public static void startNode(){
@@ -59,7 +64,9 @@ public class ElasticClientFactory {
 		int PORT;
 		switch(clientType) {
 		case TEST:
+			System.out.println("Getting client");
 			if(node == null) {
+				System.out.println("Got New Node");
 				node = new NodeBuilder().settings(getTestSettings()).node();
 			}
 			return node.client();

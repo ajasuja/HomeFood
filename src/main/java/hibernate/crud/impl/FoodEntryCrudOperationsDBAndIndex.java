@@ -5,42 +5,34 @@ import java.util.List;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.SessionBuilder;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import bos.FoodEntry;
 import hibernate.crud.ICrudOperations;
 import hibernate.init.HibernateUtil;
+import hibernate.interceptor.IndexerInterceptor;
 
 public class FoodEntryCrudOperationsDBAndIndex implements ICrudOperations<FoodEntry> {
 
 	private SessionFactory sessionFactory = HibernateUtil.SINGLETON.getSessionFactory();
-	
-//	public FoodEntryCrudOperationsDBAndIndex(ElasticClientType clientType) {
-//		Configuration hibernateConfig = ConfigurationFactory.SINGLETON
-//				.getConfigurationWithInterceptor(clientType , new IndexerInterceptor(clientType));
-//		sessionFactory = HibernateUtil.getSessionFactory(hibernateConfig);
-//	}
-	
+		
 	public long insert(FoodEntry foodEntry) {
-//		Configuration hibernateConfig = ConfigurationFactory.SINGLETON
-//				.getConfigurationWithInterceptor(environment , new IndexerInterceptor());
-//		SessionFactory sessionFactory = HibernateUtil.getSessionFactory(hibernateConfig);
-		Session session = sessionFactory.openSession();
+		SessionBuilder sessionBuilder = sessionFactory.withOptions();
+		Session session = sessionBuilder.interceptor(new IndexerInterceptor()).openSession();
 		Transaction transaction = session.beginTransaction();		
 		session.save(foodEntry);
-		session.flush();
+//		session.flush();
+		transaction.commit();//This will again call the session flush which you have called above
 		long insertedFoodId = foodEntry.getFoodId();
-		transaction.commit();		
 		session.close();
 		return insertedFoodId;
 	}
 
 	public void update(FoodEntry foodEntry) {
-//		Configuration hibernateConfig = ConfigurationFactory.SINGLETON
-//				.getConfigurationWithInterceptor(environment , new IndexerInterceptor());
-//		SessionFactory sessionFactory = HibernateUtil.getSessionFactory(hibernateConfig);
-		Session session = sessionFactory.openSession();
+		SessionBuilder sessionBuilder = sessionFactory.withOptions();
+		Session session = sessionBuilder.interceptor(new IndexerInterceptor()).openSession();
 		Transaction transaction = session.beginTransaction();		
 		session.update(foodEntry);
 		transaction.commit();
@@ -48,10 +40,8 @@ public class FoodEntryCrudOperationsDBAndIndex implements ICrudOperations<FoodEn
 	}
 
 	public void delete(long foodId) {
-//		Configuration hibernateConfig = ConfigurationFactory.SINGLETON
-//				.getConfigurationWithInterceptor(environment , new IndexerInterceptor());
-//		SessionFactory sessionFactory = HibernateUtil.getSessionFactory(hibernateConfig);
-		Session session = sessionFactory.openSession();
+		SessionBuilder sessionBuilder = sessionFactory.withOptions();
+		Session session = sessionBuilder.interceptor(new IndexerInterceptor()).openSession();
 		Transaction  transaction = session.beginTransaction();
 		FoodEntry foodEntry = (FoodEntry) session.get(FoodEntry.class, foodId);
 		session.delete(foodEntry);
@@ -61,6 +51,7 @@ public class FoodEntryCrudOperationsDBAndIndex implements ICrudOperations<FoodEn
 
 	public void read(String tableName) {
 		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Read is not supported till now");
 		
 	}
 

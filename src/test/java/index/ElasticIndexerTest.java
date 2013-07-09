@@ -3,9 +3,9 @@ package index;
 
 import junit.framework.Assert;
 import index.Indexer;
-import index.impl.ElasticClientType;
 import index.impl.ElasticIndexer;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import query.ElasticSearcher;
@@ -17,12 +17,19 @@ import bos.FoodEntry;
 
 public class ElasticIndexerTest {
 
+	private static String ENVIRONMENT = "env";
+	private static String ENVIRONMENT_VALUE = "test";
+
+	@BeforeClass
+	public static void setupEnvironment() {
+		System.setProperty(ENVIRONMENT, ENVIRONMENT_VALUE);
+	}
 	@Test
 	public void testAddFoodEntryToIndex() {
 		FoodEntry foodEntry = FoodEntryBuilder.SINGLETON.buildDefaultFoodEntryWithId();
-		Indexer indexer = new ElasticIndexer(ElasticClientType.TEST);
+		Indexer indexer = new ElasticIndexer();
 		indexer.addFoodEntryToIndex(foodEntry);
-		Query searcher = new ElasticSearcher(ElasticClientType.TEST);
+		Query searcher = new ElasticSearcher();
 		Assert.assertNotNull(searcher.getDocumentById(foodEntry.getFoodId()+""));
 		indexer.closeNodeAfterTest();
 	}
@@ -30,9 +37,9 @@ public class ElasticIndexerTest {
 	@Test
 	public void testAddAndUpdateFoodEntryToIndex() {
 		FoodEntry foodEntry = FoodEntryBuilder.SINGLETON.buildDefaultFoodEntryWithId();
-		Indexer indexer = new ElasticIndexer(ElasticClientType.TEST);
+		Indexer indexer = new ElasticIndexer();
 		indexer.addFoodEntryToIndex(foodEntry);
-		Query searcher = new ElasticSearcher(ElasticClientType.TEST);
+		Query searcher = new ElasticSearcher();
 		Assert.assertNotNull(searcher.getDocumentById(foodEntry.getFoodId()+""));
 		String updatedFoodName = "Shahi Paneer";
 		foodEntry.setFoodName(updatedFoodName);
@@ -48,9 +55,9 @@ public class ElasticIndexerTest {
 	@Test
 	public void testAddAndDeleteFoodEntry() {
 		FoodEntry foodEntry = FoodEntryBuilder.SINGLETON.buildDefaultFoodEntryWithId();
-		Indexer indexer = new ElasticIndexer(ElasticClientType.TEST);
+		Indexer indexer = new ElasticIndexer();
 		indexer.addFoodEntryToIndex(foodEntry);
-		Query searcher = new ElasticSearcher(ElasticClientType.TEST);
+		Query searcher = new ElasticSearcher();
 		Assert.assertNotNull(searcher.getDocumentById(foodEntry.getFoodId()+""));
 		indexer.deleteFoodEntryFromIndex(foodEntry.getFoodId() + "");
 		Assert.assertNull(searcher.getDocumentById(foodEntry.getFoodId()+""));

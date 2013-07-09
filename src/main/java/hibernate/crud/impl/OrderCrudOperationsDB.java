@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.SessionBuilder;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
@@ -11,6 +12,7 @@ import bos.Order;
 import hibernate.crud.ICrudOperations;
 import hibernate.crud.OrderValidity;
 import hibernate.init.HibernateUtil;
+import hibernate.interceptor.OrderInterceptor;
 
 public class OrderCrudOperationsDB implements ICrudOperations<Order>{
 
@@ -21,7 +23,9 @@ public class OrderCrudOperationsDB implements ICrudOperations<Order>{
 		if(!OrderValidity.isValidOrder(order)) {
 			return INVALID_ORDER;
 		}
-		Session session = sessionFactory.openSession();
+//		Session session = sessionFactory.openSession();
+		SessionBuilder sessionBuilder = sessionFactory.withOptions();
+		Session session = sessionBuilder.interceptor(new OrderInterceptor()).openSession();
 		Transaction transaction = session.beginTransaction();		
 		session.save(order);
 		session.flush();
@@ -32,7 +36,10 @@ public class OrderCrudOperationsDB implements ICrudOperations<Order>{
 	}
 
 	public void update(Order order) {
-		Session session = sessionFactory.openSession();
+		//TODO Add check for valid order update
+//		Session session = sessionFactory.openSession();
+		SessionBuilder sessionBuilder = sessionFactory.withOptions();
+		Session session = sessionBuilder.interceptor(new OrderInterceptor()).openSession();
 		Transaction transaction = session.beginTransaction();		
 		session.update(order);
 		transaction.commit();
@@ -40,7 +47,9 @@ public class OrderCrudOperationsDB implements ICrudOperations<Order>{
 	}
 
 	public void delete(long orderId) {
-		Session session = sessionFactory.openSession();
+//		Session session = sessionFactory.openSession();
+		SessionBuilder sessionBuilder = sessionFactory.withOptions();
+		Session session = sessionBuilder.interceptor(new OrderInterceptor()).openSession();
 		Transaction transaction = session.beginTransaction();
 		Order order = (Order) session.get(Order.class, orderId);
 		session.delete(order);

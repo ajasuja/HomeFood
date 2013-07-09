@@ -1,6 +1,5 @@
 package hibernate.crud;
 
-import index.impl.ElasticClientType;
 import junit.framework.Assert;
 import hibernate.crud.impl.FoodEntryCrudOperationsDBAndIndex;
 import hibernate.init.HibernateUtil;
@@ -19,13 +18,13 @@ import data.FoodEntryBuilder;
 //TODO Tests not running properly if ran together, running seperately fine, looks like issue of threading in database
 public class FoodEntryCrudOperationsDBAndIndexTest {
 
-	private static final ElasticClientType CLIENT_TYPE = ElasticClientType.DEV;
-	
 	private static SessionFactory sessionFactory;
+	private static String ENVIRONMENT = "env";
+	private static String ENVIRONMENT_VALUE = "test";
 
 	@BeforeClass
 	public static void setup() {
-		System.setProperty("env", "dev");
+		System.setProperty(ENVIRONMENT, ENVIRONMENT_VALUE);
 		sessionFactory = HibernateUtil.SINGLETON.getSessionFactory();		
 	}
 
@@ -41,7 +40,7 @@ public class FoodEntryCrudOperationsDBAndIndexTest {
 		ICrudOperations<FoodEntry> crudOperations = new FoodEntryCrudOperationsDBAndIndex();
 		crudOperations.insert(foodEntry);
 		Assert.assertEquals(1, crudOperations.numberOfRows("FoodEntry"));
-		Query searcher = new ElasticSearcher(CLIENT_TYPE);
+		Query searcher = new ElasticSearcher();
 		String foodIdToSearch = 1L + ""; 
 		Assert.assertNotNull(searcher.getDocumentById(foodIdToSearch));
 		searcher.closeNodeAfterTest();
@@ -56,7 +55,7 @@ public class FoodEntryCrudOperationsDBAndIndexTest {
 		ICrudOperations<FoodEntry> crudOperations = new FoodEntryCrudOperationsDBAndIndex();
 		long foodIdInserted = crudOperations.insert(foodEntry);
 		FoodEntry foodEntryAfterInsert = crudOperations.getPojo("FoodEntry", foodIdInserted);
-		Query searcher = new ElasticSearcher(CLIENT_TYPE);
+		Query searcher = new ElasticSearcher();
 		String foodIdToSearch = foodIdInserted + ""; 
 		Assert.assertNotNull(searcher.getDocumentById(foodIdToSearch));
 		Assert.assertEquals(1, crudOperations.numberOfRows("FoodEntry"));
@@ -84,14 +83,15 @@ public class FoodEntryCrudOperationsDBAndIndexTest {
 		FoodEntry foodEntry = FoodEntryBuilder.SINGLETON.buildDefaultFoodEntryWithoutId();
 		ICrudOperations<FoodEntry> crudOperations = new FoodEntryCrudOperationsDBAndIndex();
 		long foodIdInserted = crudOperations.insert(foodEntry);
-		Query searcher = new ElasticSearcher(CLIENT_TYPE);
+		Query searcher = new ElasticSearcher();
 		String foodIdToSearch = foodIdInserted + ""; 
 		Assert.assertEquals(1, crudOperations.numberOfRows("FoodEntry"));
 		Assert.assertNotNull(searcher.getDocumentById(foodIdToSearch));
 		long toDeleteFoodId = foodIdInserted;
 		crudOperations.delete(toDeleteFoodId);
 		Assert.assertEquals(0, crudOperations.numberOfRows("FoodEntry"));
-		Assert.assertNull(searcher.getDocumentById(foodIdToSearch));
+		Assert.assertNull("After delete from index no element should be on search result"
+				, searcher.getDocumentById(foodIdToSearch));
 		searcher.closeNodeAfterTest();
 		
 		crudOperations.deleteAllRows("FoodEntry");

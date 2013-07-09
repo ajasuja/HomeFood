@@ -11,7 +11,9 @@ public class ElasticIndexerHelper {
 	public static void close() {
 		ElasticClientFactory.closeNode();
 	}
-	public static Client getElaticClient(ElasticClientType clientType ) {
+	public static Client getElaticClient() {
+		String environment = System.getProperty("env");
+		ElasticClientType clientType = ElasticClientType.getClientType(environment);
 		return ElasticClientFactory.getClientInstance(clientType);
 	}
 	

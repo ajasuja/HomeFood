@@ -1,6 +1,7 @@
 package hibernate.crud;
 
 import hibernate.crud.impl.FoodEntryCrudOperationsDB;
+import hibernate.crud.impl.FoodEntryCrudOperationsDBAndIndex;
 import hibernate.crud.impl.OrderCrudOperationsDB;
 import hibernate.init.HibernateUtil;
 import junit.framework.Assert;
@@ -11,11 +12,15 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import query.ElasticSearcher;
+import query.Query;
+
 import bos.FoodEntry;
 import bos.Order;
 import data.FoodEntryBuilder;
 import data.OrderBuilder;
 
+//TODO Problem of elasticsearch concurrent reject error in test env if all tests are ran simultaneously
 public class OrderCrudOperationsDBTest {
 	private static SessionFactory sessionFactory;
 	private static long INVALID_ORDER = -1L;
@@ -84,7 +89,7 @@ public class OrderCrudOperationsDBTest {
 	}
 
 	@Test
-	public void testInsertOneFoodEntryAndValidNumOfPersonsOrder() {
+	public void testInsertOneFoodEntryAndValidNumOfPersonsOrderDB() {
 		FoodEntry foodEntry = FoodEntryBuilder.SINGLETON.buildDefaultFoodEntryWithoutId();
 		ICrudOperations<FoodEntry> crudOperationsForFoodEntry = new FoodEntryCrudOperationsDB();
 		long insertedFoodId = crudOperationsForFoodEntry.insert(foodEntry);
@@ -130,8 +135,77 @@ public class OrderCrudOperationsDBTest {
 		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("FoodEntry"));
 		crudOperationsForOrder.deleteAllRows("Order");
 		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("Order"));
+	}
+
+	@Test
+	public void testInsertOneFoodEntryAndInsertValidNumOfPersonsOrderDBAndIndex() {
+		FoodEntry foodEntry = FoodEntryBuilder.SINGLETON.buildDefaultFoodEntryWithoutId();
+		ICrudOperations<FoodEntry> crudOperationsForFoodEntry = new FoodEntryCrudOperationsDBAndIndex();
+		long insertedFoodId = crudOperationsForFoodEntry.insert(foodEntry);
+		Assert.assertEquals(1, crudOperationsForFoodEntry.numberOfRows("FoodEntry"));
+		FoodEntry foodEntryBeforeOrder = crudOperationsForFoodEntry.getPojo("FoodEntry", insertedFoodId);
 		
+		Order order = OrderBuilder.SINGLETON.buildDefaultOrder();
+		order.setFoodId(insertedFoodId);
+		ICrudOperations<Order> crudOperationsForOrder = new OrderCrudOperationsDB();
+		Assert.assertNotSame(INVALID_ORDER, crudOperationsForOrder.insert(order));
+		Assert.assertEquals(1, crudOperationsForOrder.numberOfRows("Order"));
 		
+		FoodEntry foodEntryAfterOrder = crudOperationsForFoodEntry.getPojo("FoodEntry", insertedFoodId);
+		Assert.assertSame(foodEntryBeforeOrder.getNumOfPersons() - order.getNumOfPersons()
+				, foodEntryAfterOrder.getNumOfPersons() );
+
+		Query searcher = new ElasticSearcher();
+		String foodIdToSearch = insertedFoodId + ""; 
+		Assert.assertNotNull(searcher.getDocumentById(foodIdToSearch));
+		//TODO need to validate number of persons on index and remove this print
+		System.out.println(searcher.getDocumentById(foodIdToSearch));
+		searcher.closeNodeAfterTest();
+
+		crudOperationsForFoodEntry.deleteAllRows("FoodEntry");
+		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("FoodEntry"));
+		crudOperationsForOrder.deleteAllRows("Order");
+		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("Order"));
+		
+	}
+
+	@Test
+	public void testInsertOneFoodEntryAndUpdateValidNumOfPersonsOrderDBAndIndex() {
+		FoodEntry foodEntry = FoodEntryBuilder.SINGLETON.buildDefaultFoodEntryWithoutId();
+		ICrudOperations<FoodEntry> crudOperationsForFoodEntry = new FoodEntryCrudOperationsDBAndIndex();
+		long insertedFoodId = crudOperationsForFoodEntry.insert(foodEntry);
+		Assert.assertEquals(1, crudOperationsForFoodEntry.numberOfRows("FoodEntry"));
+		FoodEntry foodEntryBeforeOrder = crudOperationsForFoodEntry.getPojo("FoodEntry", insertedFoodId);
+		
+		Order order = OrderBuilder.SINGLETON.buildDefaultOrder();
+		order.setFoodId(insertedFoodId);
+		ICrudOperations<Order> crudOperationsForOrder = new OrderCrudOperationsDB();
+		Assert.assertNotSame(INVALID_ORDER, crudOperationsForOrder.insert(order));
+		Assert.assertEquals(1, crudOperationsForOrder.numberOfRows("Order"));
+		
+		FoodEntry foodEntryAfterOrder = crudOperationsForFoodEntry.getPojo("FoodEntry", insertedFoodId);
+		Assert.assertSame(foodEntryBeforeOrder.getNumOfPersons() - order.getNumOfPersons()
+				, foodEntryAfterOrder.getNumOfPersons() );
+
+		Query searcher = new ElasticSearcher();
+		String foodIdToSearch = insertedFoodId + ""; 
+		Assert.assertNotNull(searcher.getDocumentById(foodIdToSearch));
+		System.out.println(searcher.getDocumentById(foodIdToSearch));
+
+		/*UPDATE THE PREVIOUS ORDER*/
+		int NUMBER_FIVE = 5;
+		order.setNumOfPersons(NUMBER_FIVE);
+		crudOperationsForOrder.update(order);
+		
+		Assert.assertNotNull(searcher.getDocumentById(foodIdToSearch));
+		//TODO need to assert may be based on field search to validate the updated order on search
+		System.out.println(searcher.getDocumentById(foodIdToSearch));
+		searcher.closeNodeAfterTest();
+
+		crudOperationsForFoodEntry.deleteAllRows("FoodEntry");
+		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("FoodEntry"));
+		crudOperationsForOrder.deleteAllRows("Order");
+		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("Order"));
 	}
 
 }

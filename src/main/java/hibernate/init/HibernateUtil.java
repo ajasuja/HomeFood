@@ -1,7 +1,5 @@
 package hibernate.init;
 
-import hibernate.interceptor.IndexerInterceptor;
-import hibernate.interceptor.OrderInterceptor;
 import index.impl.ElasticClientType;
 
 import org.hibernate.SessionFactory;
@@ -33,8 +31,7 @@ public enum HibernateUtil {
 	public SessionFactory getSessionFactory() {
 		String environment = System.getProperty("env");
 		ElasticClientType clientType = ElasticClientType.getClientType(environment);
-		//TODO Remove hardcoded Interceptor from here
-		Configuration conf = ConfigurationFactory.SINGLETON.getConfigurationWithInterceptor(clientType, new IndexerInterceptor(clientType));
+		Configuration conf = ConfigurationFactory.SINGLETON.getConfiguration(clientType);
 		if (sessionFactory == null) {
 			serviceRegistry = new ServiceRegistryBuilder().applySettings(conf.getProperties()).buildServiceRegistry();
 			try {

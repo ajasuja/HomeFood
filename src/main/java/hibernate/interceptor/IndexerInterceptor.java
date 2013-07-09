@@ -1,7 +1,6 @@
 package hibernate.interceptor;
 
 import index.Indexer;
-import index.impl.ElasticClientType;
 import index.impl.ElasticIndexer;
 
 import java.io.Serializable;
@@ -21,17 +20,11 @@ public class IndexerInterceptor extends EmptyInterceptor implements Interceptor{
 	 */
 	private static final long serialVersionUID = -1390085534383913782L;
 
-	private ElasticClientType clientType;
-	private Object entity;
-	
 	private Set<FoodEntry> inserts = new HashSet<FoodEntry>();
 	private Set<FoodEntry> updates = new HashSet<FoodEntry>();
 	private Set<FoodEntry> deletes = new HashSet<FoodEntry>();
  
 	
-	public IndexerInterceptor(ElasticClientType clientType) {
-		this.clientType = clientType;
-	}
 	public void onDelete(Object entity,
 	                     Serializable id,
 	                     Object[] state,
@@ -73,7 +66,6 @@ public class IndexerInterceptor extends EmptyInterceptor implements Interceptor{
 	                    Object[] state,
 	                    String[] propertyNames,
 	                    Type[] types) {
-		   this.entity = entity;
 	       if ( entity instanceof FoodEntry ) {
 	    	   FoodEntry foodEntry = (FoodEntry) entity;
 	    	   System.out.println(this.getClass().getSimpleName() +">>>>"+"Create/Insert Operation : " + foodEntry.getFoodId());
@@ -84,35 +76,28 @@ public class IndexerInterceptor extends EmptyInterceptor implements Interceptor{
 	   }
 	   //called before commit into database
 	   public void preFlush(Iterator iterator) {
-		   System.out.println("Preflush");
-		   if(entity instanceof FoodEntry) {
-			   FoodEntry foodEntry = (FoodEntry) entity;
-			   System.out.println("Preflush : " + foodEntry.getFoodId());
-		   }
+		   System.out.println(this.getClass().getSimpleName() + " >>>> Nothing is done in preflush operation");
 	   }
 	   //called after committed into database
 	   public void postFlush(Iterator iterator) {
-	      System.out.println("postFlush");
+	      System.out.println(this.getClass().getSimpleName() + " >>>>>> postFlush");
 	  	try{
-			for (Iterator it = inserts.iterator(); it.hasNext();) {
-				FoodEntry foodEntry = (FoodEntry)it.next();
-				Indexer indexer = new ElasticIndexer(clientType);
+			for (FoodEntry foodEntry : inserts) {
+				Indexer indexer = new ElasticIndexer();
 				indexer.addFoodEntryToIndex(foodEntry);
-			    System.out.println("postFlush - insert");	
+			    System.out.println("postFlush Insert is taken care for food id : " + foodEntry.getFoodId());	
 			}	
 	 
-			for (Iterator it = updates.iterator(); it.hasNext();) {
-				FoodEntry foodEntry = (FoodEntry)it.next();
-				Indexer indexer = new ElasticIndexer(clientType);
+			for (FoodEntry foodEntry : updates) {
+				Indexer indexer = new ElasticIndexer();
 				indexer.addFoodEntryToIndex(foodEntry);				
-			    System.out.println("postFlush - update");
+			    System.out.println("postFlush Update is taken care for food id : " + foodEntry.getFoodId());	
 			}	
 	 
-			for (Iterator it = deletes.iterator(); it.hasNext();) {
-				FoodEntry foodEntry = (FoodEntry) it.next();
-				Indexer indexer = new ElasticIndexer(clientType);
+			for (FoodEntry foodEntry : deletes) {
+				Indexer indexer = new ElasticIndexer();
 				indexer.deleteFoodEntryFromIndex(foodEntry.getFoodId()+"");								
-			    System.out.println("postFlush - delete");
+			    System.out.println("postFlush Delete is taken care for food id : " + foodEntry.getFoodId());	
 			} 
 	  	}
 			finally {

@@ -14,12 +14,7 @@ import bos.FoodEntry;
 
 public class ElasticIndexer implements Indexer {
 	
-	private ElasticClientType clientType;
-	
-	public ElasticIndexer(ElasticClientType clientType) {
-		this.clientType = clientType;
-	}
-	
+		
 	public void closeNodeAfterTest() {
 		close();
 	}
@@ -27,41 +22,23 @@ public class ElasticIndexer implements Indexer {
 	public void addFoodEntryToIndex(FoodEntry foodEntry) {
 		String indexId = foodEntry.getFoodId()+"";
 		IndexResponse indexResponse = 
-				getElaticClient(this.clientType).prepareIndex(getIndexName(), getIndexType(), indexId)
+				getElaticClient().prepareIndex(getIndexName(), getIndexType(), indexId)
 				.setSource(new FoodEntryToJson().getJsonFromPojo(foodEntry))
 				.execute()
 				.actionGet();
 		System.out.println(this.getClass().getSimpleName() + " >>>> "
 				+"Id : " + indexResponse.getId().toString() + ",Version : " + indexResponse.getVersion());
-		
-//		GetResponse getResponse = getElaticClient(this.clientType).prepareGet(getIndexName(), getIndexType(), indexId)
-//		        .execute()
-//		        .actionGet();
-//		System.out.println("Getting Document Version : " + getResponse.getVersion());
-//		System.out.println(getResponse.getSourceAsString());
-		
-//		close();
 	}
 
 	public void addFoodEntriesToIndex(List<FoodEntry> foodEntries) {
 		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Batch indexing not supported yet");
 		
 	}
 	public void deleteFoodEntryFromIndex(String foodId) {
-		// TODO Auto-generated method stub
-		DeleteResponse deleteResponse = getElaticClient(this.clientType).prepareDelete(getIndexName(), getIndexType(), foodId)
+		DeleteResponse deleteResponse = getElaticClient().prepareDelete(getIndexName(), getIndexType(), foodId)
 		        .execute()
 		        .actionGet();
 		System.out.println("Version after delete : " + deleteResponse.getVersion());
-//		GetResponse getResponse = getElaticClient(this.clientType).prepareGet(getIndexName(), getIndexType(), foodId)
-//		        .execute()
-//		        .actionGet();
-//		if(getResponse.getSourceAsString() == null) {
-//			System.out.println("No document matched for id : " + foodId);
-//		} else {
-//			System.out.println(getResponse.getSourceAsString());
-//		}
-//		
-//		close();
 	}
 }

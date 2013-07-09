@@ -11,7 +11,7 @@ public enum OrderBuilder {
 	public long ORDER_ID = 1L;
 	public long FOOD_ID = 1L;	
 	public long COOK_ID = 1001L;
-	public int NUM_OF_PERSONS = 5;
+	public int NUM_OF_PERSONS = 3;
 	public String ORDER_NOTE = "Make it medium spicy";
 		
 	public Order buildDefaultOrder() {
