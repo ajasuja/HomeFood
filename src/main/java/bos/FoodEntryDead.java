@@ -6,7 +6,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
@@ -18,10 +17,9 @@ import org.hibernate.envers.Audited;
 @Entity
 @Table
 @Audited
-public class FoodEntry {
-
+public class FoodEntryDead {
+	
 	@Id
-	@GeneratedValue
 	@Column(name = "FOOD_ID", unique = true, nullable = false)
 	public long getFoodId() {
 		return foodId;
@@ -132,5 +130,5 @@ public class FoodEntry {
 	private Date entryCreatedTime;
 	private Date orderTimeDeadline;
 	private Date changeTime;	
-	
+
 }

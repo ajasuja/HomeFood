@@ -16,6 +16,7 @@ public enum FoodEntryBuilder {
 			"along with indian spices";
 	public double PRICE_PER_PERSON = 170.00;
 	public int NUM_OF_PERSONS = 10;
+	public long ORDER_VALID_TIME_FROM_CURRENT_IN_MILLIS = 10L * 1000;
 		
 	public FoodEntry buildDefaultFoodEntryWithId() {
 		
@@ -27,8 +28,8 @@ public enum FoodEntryBuilder {
 		foodEntry.setPricePerPerson(PRICE_PER_PERSON);
 		foodEntry.setNumOfPersons(NUM_OF_PERSONS);
 		foodEntry.setCurrencyType(CurrencyType.US_DOLLAR);
-		foodEntry.setEntryCreatedTime(new Date());
-		foodEntry.setOrderTimeDeadline(new Date());
+		foodEntry.setEntryCreatedTime(new Date(System.currentTimeMillis()));
+		foodEntry.setOrderTimeDeadline(new Date(System.currentTimeMillis() + ORDER_VALID_TIME_FROM_CURRENT_IN_MILLIS));
 		foodEntry.setChangeTime(new Date());
 		return foodEntry;
 	}
@@ -42,8 +43,8 @@ public enum FoodEntryBuilder {
 		foodEntry.setPricePerPerson(PRICE_PER_PERSON);
 		foodEntry.setNumOfPersons(NUM_OF_PERSONS);
 		foodEntry.setCurrencyType(CurrencyType.US_DOLLAR);
-		foodEntry.setEntryCreatedTime(new Date());
-		foodEntry.setOrderTimeDeadline(new Date());
+		foodEntry.setEntryCreatedTime(new Date(System.currentTimeMillis()));
+		foodEntry.setOrderTimeDeadline(new Date(System.currentTimeMillis() + ORDER_VALID_TIME_FROM_CURRENT_IN_MILLIS));
 		foodEntry.setChangeTime(new Date());
 		return foodEntry;
 	}

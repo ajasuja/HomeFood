@@ -25,8 +25,17 @@
     	<!-- MAPPINGS FOR ENTITIES -->
 	   	<!-- <mapping class="hibernate.entities.Student"></mapping>-->
     	<mapping class="bos.FoodEntry"></mapping>
+    	<mapping class="bos.FoodEntryDead"></mapping>
     	<mapping class="bos.Order"></mapping>
     	    	
+    	<!-- Envers Configuration  -->
+    	<listener class="org.hibernate.envers.event.AuditEventListener" type="post-insert"/>
+	    <listener class="org.hibernate.envers.event.AuditEventListener" type="post-update"/>
+	    <listener class="org.hibernate.envers.event.AuditEventListener" type="post-delete"/>
+	    <listener class="org.hibernate.envers.event.AuditEventListener" type="pre-collection-update"/>
+	    <listener class="org.hibernate.envers.event.AuditEventListener" type="pre-collection-remove"/>
+	    <listener class="org.hibernate.envers.event.AuditEventListener" type="post-collection-recreate"/>
+	    
     </session-factory>
     
 </hibernate-configuration>

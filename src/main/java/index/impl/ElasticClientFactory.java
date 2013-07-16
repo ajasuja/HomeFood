@@ -64,9 +64,7 @@ public class ElasticClientFactory {
 		int PORT;
 		switch(clientType) {
 		case TEST:
-			System.out.println("Getting client");
 			if(node == null) {
-				System.out.println("Got New Node");
 				node = new NodeBuilder().settings(getTestSettings()).node();
 			}
 			return node.client();

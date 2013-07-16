@@ -10,8 +10,11 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.envers.Audited;
+
 @Entity
 @Table(name="OrderEntry")
+@Audited
 public class Order {
 
 	@Id

@@ -26,8 +26,6 @@ public class ElasticIndexer implements Indexer {
 				.setSource(new FoodEntryToJson().getJsonFromPojo(foodEntry))
 				.execute()
 				.actionGet();
-		System.out.println(this.getClass().getSimpleName() + " >>>> "
-				+"Id : " + indexResponse.getId().toString() + ",Version : " + indexResponse.getVersion());
 	}
 
 	public void addFoodEntriesToIndex(List<FoodEntry> foodEntries) {
@@ -39,6 +37,5 @@ public class ElasticIndexer implements Indexer {
 		DeleteResponse deleteResponse = getElaticClient().prepareDelete(getIndexName(), getIndexType(), foodId)
 		        .execute()
 		        .actionGet();
-		System.out.println("Version after delete : " + deleteResponse.getVersion());
 	}
 }

@@ -2,6 +2,7 @@ package hibernate.crud;
 
 import hibernate.crud.impl.FoodEntryCrudOperationsDB;
 import hibernate.crud.impl.FoodEntryCrudOperationsDBAndIndex;
+import hibernate.crud.impl.FoodEntryDeadCrudOperationsDB;
 import hibernate.crud.impl.OrderCrudOperationsDB;
 import hibernate.init.HibernateUtil;
 import junit.framework.Assert;
@@ -16,6 +17,7 @@ import query.ElasticSearcher;
 import query.Query;
 
 import bos.FoodEntry;
+import bos.FoodEntryDead;
 import bos.Order;
 import data.FoodEntryBuilder;
 import data.OrderBuilder;
@@ -206,6 +208,48 @@ public class OrderCrudOperationsDBTest {
 		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("FoodEntry"));
 		crudOperationsForOrder.deleteAllRows("Order");
 		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("Order"));
+	}
+
+	@Test
+	public void testInsertOneFoodEntryAndUpdateRemainingNumOfPersonsOrderDBAndIndex() {
+		FoodEntry foodEntry = FoodEntryBuilder.SINGLETON.buildDefaultFoodEntryWithoutId();
+		ICrudOperations<FoodEntry> crudOperationsForFoodEntry = new FoodEntryCrudOperationsDBAndIndex();
+		long insertedFoodId = crudOperationsForFoodEntry.insert(foodEntry);
+		Assert.assertEquals(1, crudOperationsForFoodEntry.numberOfRows("FoodEntry"));
+		FoodEntry foodEntryBeforeOrder = crudOperationsForFoodEntry.getPojo("FoodEntry", insertedFoodId);
+		
+		Order order = OrderBuilder.SINGLETON.buildDefaultOrder();
+		order.setFoodId(insertedFoodId);
+		ICrudOperations<Order> crudOperationsForOrder = new OrderCrudOperationsDB();
+		Assert.assertNotSame(INVALID_ORDER, crudOperationsForOrder.insert(order));
+		Assert.assertEquals(1, crudOperationsForOrder.numberOfRows("Order"));
+		
+		FoodEntry foodEntryAfterOrder = crudOperationsForFoodEntry.getPojo("FoodEntry", insertedFoodId);
+		Assert.assertSame(foodEntryBeforeOrder.getNumOfPersons() - order.getNumOfPersons()
+				, foodEntryAfterOrder.getNumOfPersons() );
+
+		Query searcher = new ElasticSearcher();
+		String foodIdToSearch = insertedFoodId + ""; 
+		Assert.assertNotNull(searcher.getDocumentById(foodIdToSearch));
+		System.out.println(searcher.getDocumentById(foodIdToSearch));
+
+		/*UPDATE THE PREVIOUS ORDER TO FINISH THE ORDER*/
+		int NUMBER_TEN = 10;
+		order.setNumOfPersons(NUMBER_TEN);
+		crudOperationsForOrder.update(order);
+		
+		Assert.assertNull("Order is finished as num of persons become zero", searcher.getDocumentById(foodIdToSearch));
+		searcher.closeNodeAfterTest();
+
+		ICrudOperations<FoodEntryDead> crudOperationsForFoodEntryDead = new FoodEntryDeadCrudOperationsDB();
+		Assert.assertEquals(1, crudOperationsForFoodEntryDead.numberOfRows("FoodEntryDead"));
+		
+		crudOperationsForFoodEntry.deleteAllRows("FoodEntry");
+		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("FoodEntry"));
+		crudOperationsForOrder.deleteAllRows("Order");
+		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("Order"));
+		crudOperationsForOrder.deleteAllRows("FoodEntryDead");
+		Assert.assertEquals(0, crudOperationsForFoodEntry.numberOfRows("FoodEntryDead"));
 	}
 
 }

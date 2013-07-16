@@ -13,3 +13,8 @@ CREATE TABLE `FoodEntry` (
   PRIMARY KEY (`foodId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2001 DEFAULT CHARSET=utf8;
 
+############################
+
+2. Creating Trigger in MySql;
+
+

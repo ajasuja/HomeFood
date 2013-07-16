@@ -1,5 +1,6 @@
 package hibernate.crud.impl;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -8,6 +9,15 @@ import org.hibernate.Session;
 import org.hibernate.SessionBuilder;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.impl.StdSchedulerFactory;
+
+import cron.job.DeleteFoodEntryFromDBJob;
+import cron.trigger.DeleteFoodEntryFromDBTrigger;
+
 
 import bos.FoodEntry;
 import hibernate.crud.ICrudOperations;
@@ -16,6 +26,7 @@ import hibernate.interceptor.IndexerInterceptor;
 
 public class FoodEntryCrudOperationsDBAndIndex implements ICrudOperations<FoodEntry> {
 
+	public static String DELETE_ENTRY_DB_JOB_NAME = "DeleteEntryDBJob";
 	private SessionFactory sessionFactory = HibernateUtil.SINGLETON.getSessionFactory();
 		
 	public long insert(FoodEntry foodEntry) {
@@ -26,6 +37,21 @@ public class FoodEntryCrudOperationsDBAndIndex implements ICrudOperations<FoodEn
 //		session.flush();
 		transaction.commit();//This will again call the session flush which you have called above
 		long insertedFoodId = foodEntry.getFoodId();
+		/*Code for scheduling job to delete dead food entry from DB and Index*/
+		try {
+//			SingleScheduler singleScheduler = SingleScheduler.SINGLETON.getSchedulerInstance();
+			Scheduler scheduler = new StdSchedulerFactory().getScheduler();
+	    	scheduler.start();
+	    	Date orderDeadlineDate = foodEntry.getOrderTimeDeadline();
+			JobDetail job = JobBuilder.newJob(DeleteFoodEntryFromDBJob.class).withIdentity(DELETE_ENTRY_DB_JOB_NAME + "_" + orderDeadlineDate.getTime()).build();
+//			singleScheduler.startScheduler();
+			scheduler.scheduleJob(job, new DeleteFoodEntryFromDBTrigger().getTriggerBasedOnDate(orderDeadlineDate));
+//			Thread.sleep(20L*1000);			
+//			singleScheduler.scheduleJob(job, new DeleteFoodEntryFromDBTrigger().getTriggerBasedOnDate(orderDeadlineDate));
+//			Thread.sleep(15L*1000);
+		} catch (SchedulerException e) {
+			e.printStackTrace();
+		} 
 		session.close();
 		return insertedFoodId;
 	}
@@ -44,6 +70,9 @@ public class FoodEntryCrudOperationsDBAndIndex implements ICrudOperations<FoodEn
 		Session session = sessionBuilder.interceptor(new IndexerInterceptor()).openSession();
 		Transaction  transaction = session.beginTransaction();
 		FoodEntry foodEntry = (FoodEntry) session.get(FoodEntry.class, foodId);
+		if (foodEntry == null) {
+			System.out.println(foodId + " >>> Food Id to be deleted is not present in Table");
+		}
 		session.delete(foodEntry);
 		transaction.commit();
 		session.close();
